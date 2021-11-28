@@ -102,7 +102,7 @@ def data():
                            host=database_details["url"],
                            database="house_prices")
 
-  year = input("Which year do you want?")
+  year = int(input("Which year do you want?"))
   rows = filter_join_year(year, conn)
   return pd.DataFrame(rows, columns = cols)
 
