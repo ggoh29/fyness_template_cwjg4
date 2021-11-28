@@ -62,7 +62,7 @@ def get_house_prices(conn):
 
   cur.execute("""SELECT price, date_of_transfer, property_type, new_build_flag, 
      tenure_type, locality, town_city, district, 
-     county, db_id, postcode FROM house_prices""")
+     county, db_id, postcode FROM pp_data""")
   row = cur.fetchall()
   cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id', 'postcode']
   return pd.DataFrame(row, columns=cols)
@@ -73,7 +73,7 @@ def get_house_prices_by_year(year, conn):
 
   cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
      tenure_type, locality, town_city, district, 
-     county, db_id, postcode FROM house_prices
+     county, db_id, postcode FROM pp_data
     WHERE date_of_transfer >= '{year}-01-01 00:00:00' 
        AND date_of_transfer < '{year + 1}-01-01 00:00:00'""")
   row = cur.fetchall()
@@ -117,7 +117,7 @@ def data():
   return pd.merge(house_prices, property_prices, on = 'postcode', how = 'inner')
 
 
-def query_year():
+def data_by_year():
   database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
                       "port": 3306}
 
