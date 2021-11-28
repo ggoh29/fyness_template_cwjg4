@@ -64,6 +64,7 @@ def get_house_prices(conn):
      tenure_type, locality, town_city, district, 
      county, db_id, postcode FROM pp_data""")
   row = cur.fetchall()
+
   cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id', 'postcode']
   return pd.DataFrame(row, columns=cols)
 
