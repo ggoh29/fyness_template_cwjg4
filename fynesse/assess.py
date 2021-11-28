@@ -235,6 +235,7 @@ def data():
 
 
 def query(data):
+
     """Request user input for some aspect of the data."""
     raise NotImplementedError
 

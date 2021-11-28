@@ -9,15 +9,21 @@ import sqlite"""
 import yaml
 from ipywidgets import interact_manual, Text, Password
 import pymysql
-
+import pandas as pd
 # This file accesses the data
 
 """Place commands in this file to access the data electronically. Don't remove any missing values, or deal with outliers. Make sure you have legalities correct, both intellectual property and personal data privacy rights. Beyond the legal side also think about the ethical issues around this data. """
-import pandas as pd
 
-cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality',
-        'town_city', 'district', 'county', 'country', 'latitude', 'longitude', 'db_id']
 
+# cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality',
+#         'town_city', 'district', 'county', 'country', 'latitude', 'longitude', 'db_id']
+
+@interact_manual(username=Text(description="Username:"),password=Password(description="Password:"))
+def write_credentials(username, password):
+  with open("credentials.yaml", "w") as file:
+    credentials_dict = {'username': username,
+                        'password': password}
+    yaml.dump(credentials_dict, file)
 
 def create_connection(user, password, host, database, port=3306):
   """ Create a database connection to the MariaDB database
@@ -50,6 +56,16 @@ def get_postcode_data(conn):
   cols = ['longitude', 'latitude', 'postcode']
   return pd.DataFrame(rows, columns=cols)
 
+
+def get_house_prices(conn):
+  cur = conn.cursor()
+
+  cur.execute("""SELECT price, date_of_transfer, property_type, new_build_flag, 
+     tenure_type, locality, town_city, district, 
+     county, db_id, postcode FROM house_prices""")
+  row = cur.fetchall()
+  cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id', 'postcode']
+  return pd.DataFrame(row, columns=cols)
 
 
 def get_house_prices_by_year(year, conn):
@@ -90,12 +106,39 @@ def data():
                                  host=database_details["url"],
                                  database="house_prices")
 
-  year = int(input("Which year do you want?"))
-  house_prices = get_house_prices_by_year(year, house_conn)
+  house_prices = get_house_prices(house_conn)
 
   postcode_conn = create_connection(user=credentials["username"],
                                  password=credentials["password"],
                                  host=database_details["url"],
                                  database="property_prices")
   property_prices = get_postcode_data(postcode_conn)
+
   return pd.merge(house_prices, property_prices, on = 'postcode', how = 'inner')
+
+
+def query_year():
+  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
+                      "port": 3306}
+
+  with open("credentials.yaml") as file:
+    credentials = yaml.safe_load(file)
+  username = credentials["username"]
+  password = credentials["password"]
+  url = database_details["url"]
+
+  house_conn = create_connection(user=credentials["username"],
+                                 password=credentials["password"],
+                                 host=database_details["url"],
+                                 database="house_prices")
+
+  year = int(input("Which year do you want?"))
+  house_prices = get_house_prices_by_year(year, house_conn)
+
+  postcode_conn = create_connection(user=credentials["username"],
+                                    password=credentials["password"],
+                                    host=database_details["url"],
+                                    database="property_prices")
+  property_prices = get_postcode_data(postcode_conn)
+
+  return pd.merge(house_prices, property_prices, on='postcode', how='inner')
