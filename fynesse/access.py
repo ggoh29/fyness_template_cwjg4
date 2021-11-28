@@ -51,7 +51,7 @@ def create_connection(user, password, host, database, port=3306):
 
 def get_postcode_data(conn):
   cur = conn.cursor()
-  cur.execute("""SELECT longitude, latitude, postcode FROM postcode_data;""")
+  cur.execute("""SELECT longitude, lattitude, postcode FROM postcode_data;""")
   rows = cur.fetchall()
   cols = ['longitude', 'latitude', 'postcode']
   return pd.DataFrame(rows, columns=cols)
