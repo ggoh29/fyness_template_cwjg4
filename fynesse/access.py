@@ -69,7 +69,7 @@ def get_house_prices(conn):
   return pd.DataFrame(row, columns=cols)
 
 
-def get_house_prices_by_year_and_county(county, year, conn):
+def get_house_prices_by_year_and_county(year, county, conn):
   cur = conn.cursor()
 
   cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
