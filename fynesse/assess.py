@@ -227,12 +227,12 @@ def view_map(df):
   get_pois_and_df_map(town_city, df, possible_tags, price_bin)
 
 
-
 def data():
     """Load the data from access and ensure missing values are correctly encoded as well as indices correct, column names informative, date and times correctly formatted. Return a structured data structure such as a data frame."""
     df = access.data()
     df.fillna(0)
     return df
+
 
 def query(data):
     """Request user input for some aspect of the data."""
