@@ -6,11 +6,105 @@ import oauth2
 import mongodb
 import sqlite"""
 
+import yaml
+from ipywidgets import interact_manual, Text, Password
+import pymysql
+
 # This file accesses the data
 
 """Place commands in this file to access the data electronically. Don't remove any missing values, or deal with outliers. Make sure you have legalities correct, both intellectual property and personal data privacy rights. Beyond the legal side also think about the ethical issues around this data. """
+import pandas as pd
+
+cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality',
+        'town_city', 'district', 'county', 'country', 'latitude', 'longitude', 'db_id']
+
+
+def create_connection(user, password, host, database, port=3306):
+  """ Create a database connection to the MariaDB database
+			specified by the host url and database name.
+	:param user: username
+	:param password: password
+	:param host: host url
+	:param database: database
+	:param port: port number
+	:return: Connection object or None
+	"""
+  conn = None
+  try:
+    conn = pymysql.connect(user=user,
+                           passwd=password,
+                           host=host,
+                           port=port,
+                           local_infile=1,
+                           db=database
+                           )
+  except Exception as e:
+    print(f"Error connecting to the MariaDB Server: {e}")
+  return conn
+
+
+def filter_join_year(year, conn):
+  cur = conn.cursor()
+
+  cur.execute(f"""SELECT pp.price as price,
+   pp.date_of_transfer as date_of_transfer,
+   pp.postcode as postcode,
+   pp.property_type as proprty_type,
+   pp.new_build_flag as new_build_flag, 
+   pp.tenure_type as tenure_type, 
+   pp.locality as locality, 
+   pp.town_city as town_city, 
+   pp.district as district, 
+   pp.county as county, 
+   geo.country as country, 
+   geo.latitude as latitude, 
+   geo.longitude as longitude, 
+   pp.db_id as db_id
+  FROM 
+    (SELECT price, date_of_transfer, property_type, new_build_flag, 
+     tenure_type, locality, town_city, district, 
+     county, db_id,
+      postcode FROM pp_combined
+    WHERE date_of_transfer >= '{year}-01-01 00:00:00' 
+       AND date_of_transfer < '{year + 1}-01-01 00:00:00') pp
+    INNER JOIN
+    (SELECT 
+      longitude, latitude, postcode, country
+      FROM open_postcode_geo_1) geo
+    ON
+      pp.postcode = geo.postcode""")
+  row = cur.fetchall()
+  return row
+
 
 def data():
-    """Read the data from the web or local file, returning structured format such as a data frame"""
-    raise NotImplementedError
+  """Read the data from the web or local file, returning structured format such as a data frame"""
+
+  @interact_manual(username=Text(description="Username:"),
+                   password=Password(description="Password:"))
+  def write_credentials(username, password):
+    with open("credentials.yaml", "w") as file:
+      credentials_dict = {'username': username,
+                          'password': password}
+      yaml.dump(credentials_dict, file)
+
+  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
+                      "port": 3306}
+
+  with open("credentials.yaml") as file:
+    credentials = yaml.safe_load(file)
+  username = credentials["username"]
+  password = credentials["password"]
+  url = database_details["url"]
+
+  conn = create_connection(user=credentials["username"],
+                           password=credentials["password"],
+                           host=database_details["url"],
+                           database="house_prices")
+
+  year = input("Which year do you want?")
+  rows = filter_join_year(year, conn)
+  return pd.DataFrame(rows, columns = cols)
+
+
 
