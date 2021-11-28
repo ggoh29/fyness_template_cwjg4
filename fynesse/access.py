@@ -77,7 +77,7 @@ def get_house_prices_by_year_and_county(year, county, conn):
      county, db_id, postcode FROM pp_data
     WHERE date_of_transfer >= '{year}-01-01 00:00:00'
        AND date_of_transfer < '{year + 1}-01-01 00:00:00'
-       AND county = '"{county}"'""")
+       AND county = '{county}'""")
   row = cur.fetchall()
   cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id']
   return pd.DataFrame(row, columns=cols)
@@ -134,10 +134,8 @@ def data_by_year_and_county():
                                  host=database_details["url"],
                                  database="house_prices")
 
-  year = 2018
-  county = "BUCKINGHAMSHIRE"
-  # year = int(input("Which year do you want?"))
-  # county = (input("Which county do you want?"))
+  year = int(input("Which year do you want?"))
+  county = f'"{input("Which county do you want?")}"'
   house_prices = get_house_prices_by_year_and_county(year, county, house_conn)
 
   postcode_conn = create_connection(user=credentials["username"],
