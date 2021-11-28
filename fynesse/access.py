@@ -21,14 +21,14 @@ cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_fla
 
 def create_connection(user, password, host, database, port=3306):
   """ Create a database connection to the MariaDB database
-			specified by the host url and database name.
-	:param user: username
-	:param password: password
-	:param host: host url
-	:param database: database
-	:param port: port number
-	:return: Connection object or None
-	"""
+      specified by the host url and database name.
+  :param user: username
+  :param password: password
+  :param host: host url
+  :param database: database
+  :param port: port number
+  :return: Connection object or None
+  """
   conn = None
   try:
     conn = pymysql.connect(user=user,
@@ -43,38 +43,26 @@ def create_connection(user, password, host, database, port=3306):
   return conn
 
 
-def filter_join_year(year, conn):
+def get_postcode_data(conn):
+  cur = conn.cursor()
+  cur.execute("""SELECT longitude, latitude, postcode FROM property_prices;""")
+  rows = cur.fetchall()
+  cols = ['longitude', 'latitude', 'postcode']
+  return pd.DataFrame(rows, columns=cols)
+
+
+
+def get_house_prices_by_year(year, conn):
   cur = conn.cursor()
 
-  cur.execute(f"""SELECT pp.price as price,
-   pp.date_of_transfer as date_of_transfer,
-   pp.postcode as postcode,
-   pp.property_type as proprty_type,
-   pp.new_build_flag as new_build_flag, 
-   pp.tenure_type as tenure_type, 
-   pp.locality as locality, 
-   pp.town_city as town_city, 
-   pp.district as district, 
-   pp.county as county, 
-   geo.country as country, 
-   geo.latitude as latitude, 
-   geo.longitude as longitude, 
-   pp.db_id as db_id
-  FROM 
-    (SELECT price, date_of_transfer, property_type, new_build_flag, 
+  cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
      tenure_type, locality, town_city, district, 
-     county, db_id,
-      STR(postcode) FROM postcode_data
+     county, db_id, postcode FROM house_prices
     WHERE date_of_transfer >= '{year}-01-01 00:00:00' 
-       AND date_of_transfer < '{year + 1}-01-01 00:00:00') pp
-    INNER JOIN
-    (SELECT 
-      longitude, latitude, STR(postcode), country
-      FROM property_prices) geo
-    ON
-      pp.postcode = geo.postcode""")
+       AND date_of_transfer < '{year + 1}-01-01 00:00:00'""")
   row = cur.fetchall()
-  return row
+  cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id', 'postcode']
+  return pd.DataFrame(row, columns=cols)
 
 
 def data():
@@ -97,14 +85,17 @@ def data():
   password = credentials["password"]
   url = database_details["url"]
 
-  conn = create_connection(user=credentials["username"],
-                           password=credentials["password"],
-                           host=database_details["url"],
-                           database="house_prices")
+  house_conn = create_connection(user=credentials["username"],
+                                 password=credentials["password"],
+                                 host=database_details["url"],
+                                 database="house_prices")
 
   year = int(input("Which year do you want?"))
-  rows = filter_join_year(year, conn)
-  return pd.DataFrame(rows, columns = cols)
+  house_prices = get_house_prices_by_year(year, house_conn)
 
-
-
+  postcode_conn = create_connection(user=credentials["username"],
+                                 password=credentials["password"],
+                                 host=database_details["url"],
+                                 database="property_prices")
+  property_prices = get_postcode_data(postcode_conn)
+  return pd.merge(house_prices, property_prices, on = 'postcode', how = 'inner')
