@@ -72,12 +72,12 @@ def get_house_prices(conn):
 def get_house_prices_by_year_and_county(year, county, conn):
   cur = conn.cursor()
 
-  cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
+  cur.execute(f'''SELECT price, date_of_transfer, property_type, new_build_flag, 
      tenure_type, locality, town_city, district, 
      county, db_id, postcode FROM pp_data
     WHERE date_of_transfer >= '{year}-01-01 00:00:00' 
        AND date_of_transfer < '{year + 1}-01-01 00:00:00'
-       AND county = '{county}'""")
+       AND county = "{county}"''')
   row = cur.fetchall()
   cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id']
   return pd.DataFrame(row, columns=cols)
@@ -134,6 +134,8 @@ def data_by_year_and_county():
                                  host=database_details["url"],
                                  database="house_prices")
 
+  year = 2018
+  county = 'BUCKINGHAMSHIRE'
   year = int(input("Which year do you want?"))
   county = (input("Which county do you want?"))
   house_prices = get_house_prices_by_year_and_county(year, county, house_conn)
@@ -143,7 +145,4 @@ def data_by_year_and_county():
                                     host=database_details["url"],
                                     database="property_prices")
   property_prices = get_postcode_data(postcode_conn)
-  return house_prices, property_prices
-  # print(house_prices.head())
-  # print(property_prices.head())
-  # return pd.merge(house_prices, property_prices, on='postcode', how='inner')
+  return pd.merge(house_prices, property_prices, on='postcode', how='inner')
