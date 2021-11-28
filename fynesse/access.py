@@ -64,7 +64,7 @@ def filter_join_year(year, conn):
     (SELECT price, date_of_transfer, property_type, new_build_flag, 
      tenure_type, locality, town_city, district, 
      county, db_id,
-      STR(postcode) FROM house_prices
+      STR(postcode) FROM postcode_data
     WHERE date_of_transfer >= '{year}-01-01 00:00:00' 
        AND date_of_transfer < '{year + 1}-01-01 00:00:00') pp
     INNER JOIN
