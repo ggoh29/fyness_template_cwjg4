@@ -64,6 +64,7 @@ def create_conn(database):
                                  database=database)
   return conn
 
+
 def get_postcode_data(conn):
   cur = conn.cursor()
   cur.execute("""SELECT longitude, lattitude, postcode FROM postcode_data;""")
