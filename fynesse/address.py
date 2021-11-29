@@ -59,3 +59,4 @@ def train_and_predict(model, train, input):
 	model.fit(x_train, y_train)
 	prediction = model.predict(input)
 	print(f"Model has predicted an output of {prediction}")
+	return prediction
