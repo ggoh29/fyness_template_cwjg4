@@ -148,5 +148,4 @@ def data_by_year_and_county():
                                     host=database_details["url"],
                                     database="property_prices")
   property_prices = get_postcode_data(postcode_conn)
-  return house_prices, property_prices
-  # return pd.merge(house_prices, property_prices, on='postcode', how='inner')
+  return pd.merge(house_prices, property_prices, on='postcode', how='inner')
