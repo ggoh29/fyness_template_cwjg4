@@ -176,7 +176,8 @@ def find_postcode(df, longitude, latitude, bounds=0.0002):
   # so working around it
   df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
   df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
-
+  if len(df) == 0:
+    raise Exception("Check your longitude and latitudes. They might not correspond to a location in the UK")
   return df['postcode'].item()
 
 
