@@ -18,6 +18,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.inspection import permutation_importance
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import r2_score
+import random
+import pandas as pd
 """Address a particular question that arises from the data"""
 
 def get_basic_linear_regressor():
@@ -31,6 +33,18 @@ def split_data_into_x_and_y(df, y_col = 'price'):
 	lst.remove(y_col)
 	return df[lst], df[y_col]
 
+def resample(df, size=1000):
+  l = len(df)
+  if l >= size:
+    return df
+  cols = list(df.columns)
+  rows = list(df.to_records(index=False))
+  resampled_df = [rows[random.randint(0, l-1)] for _ in range(size)]
+  resampled_df = [*zip(*resampled_df)]
+  dct = {}
+  for index, col in zip(cols, resampled_df):
+    dct[index] = col
+  return pd.DataFrame(dct)
 
 def feature_importance(x, y, model):
 	features = x.columns
@@ -46,7 +60,7 @@ def feature_importance(x, y, model):
 
 
 def generate_performance_of_model(df, model):
-	train, test = generate_train_test_split(df, model)
+	train, test = generate_train_test_split(df)
 	x_train, y_train = split_data_into_x_and_y(train)
 	x_test, y_test = split_data_into_x_and_y(test)
 	model.fit(x_train, y_train)
