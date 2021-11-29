@@ -19,6 +19,9 @@ from sklearn.inspection import permutation_importance
 from sklearn.ensemble import GradientBoostingClassifier
 """Address a particular question that arises from the data"""
 
+def get_basic_linear_regressor():
+	return LinearRegression()
+
 def generate_train_test_split(df, test_size=0.1):
 	return train_test_split(df, test_size=test_size)
 
@@ -39,8 +42,4 @@ def feature_importance(x, y, model):
 			print(f"{features[i]:<8}"
 						f"{r.importances_mean[i]:.3f}"
 						f" +/- {r.importances_std[i]:.3f}")
-
-def get_basic_linear_regressor():
-	return LinearRegression()
-
 

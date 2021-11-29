@@ -297,6 +297,17 @@ def labelled(df, town_city, poi_tags):
   for i_key, key in zip(inverse_sold_tags, ['sold_before', 'sold_total']):
     df[i_key] = 1 / (1 + df[key])
 
-  df = one_hot(df, 'pt', 'property_type')
+  if len(df['property_type'].unique()) < 5:
+    property_dct = {'D': [1, 0, 0, 0, 0],
+                    'F': [0, 1, 0, 0, 0],
+                    'O': [0, 0, 1, 0, 0],
+                    'S': [0, 0, 0, 1, 0],
+                    'T': [0, 0, 0, 0, 1]}
+    P_df = [property_dct[row['property_type']] for _, row in df.iterrows()]
+    df = df.drop(columns=['property_type'])
+    P_df = pd.DataFrame(P_df, columns = one_hot_cols)
+    df = pd.concat([df, P_df], axis = 1)
+  else:
+    df = one_hot(df, 'pt', 'property_type')
   columns = required_cols + one_hot_cols + house_stats_cols + inverse_sold_tags
   return df[columns]
