@@ -190,6 +190,7 @@ def scale_and_reduce(df, cols):
 
 
 def view_price(df):
+  """View price against a single column"""
   col = None
   while col not in df.columns:
     # Using this loop since I don't really want to do too much error handling
@@ -201,6 +202,7 @@ def view_price(df):
 
 
 def view_pca(df):
+  """Generates a 1d,2d or 3d scatter plot of attributes with respect to price"""
   dim = -1
   while dim not in {1, 2, 3}:
     # Using this loop since I don't really want to do too much error handling
@@ -231,6 +233,7 @@ def view_pca(df):
 
 
 def view_map(df):
+  """Generates a 2d map of the area including pois and the cost of the houses"""
   town_city_set = set(df.town_city.unique())
   town_city = None
   print(town_city_set)

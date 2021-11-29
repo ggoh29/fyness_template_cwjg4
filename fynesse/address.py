@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.inspection import permutation_importance
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import r2_score
 """Address a particular question that arises from the data"""
 
 def get_basic_linear_regressor():
@@ -43,3 +44,18 @@ def feature_importance(x, y, model):
 						f"{r.importances_mean[i]:.3f}"
 						f" +/- {r.importances_std[i]:.3f}")
 
+
+def generate_performance_of_model(df, model):
+	train, test = generate_train_test_split(df, model)
+	x_train, y_train = split_data_into_x_and_y(train)
+	x_test, y_test = split_data_into_x_and_y(test)
+	model.fit(x_train, y_train)
+	prediction = model.predict(x_test)
+	print(f"Model has an R2 score of {r2_score(y_test, prediction)}")
+
+
+def train_and_predict(model, train, input):
+	x_train, y_train = split_data_into_x_and_y(train)
+	model.fit(x_train, y_train)
+	prediction = model.predict(input)
+	print(f"Model has predicted an output of {prediction}")
