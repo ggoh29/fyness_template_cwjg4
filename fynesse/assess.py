@@ -280,7 +280,8 @@ def labelled(df, town_city, poi_tags):
   # Feature that I want to include unfortunately have to be hard coded in
   required_cols = ['price', 'latitude', 'longitude']
   one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
-  house_stats_cols = ['sold_before', 'sold_total', 'average_price_of_area']
+  # house_stats_cols = ['sold_before', 'sold_total', 'average_price_of_area']
+  house_stats_cols =  ['sold_before', 'sold_total']
 
   df = get_pois(town_city, df, poi_tags)
   inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
