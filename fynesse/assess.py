@@ -22,6 +22,7 @@ import mlai
 import mlai.plot as plot
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
+from random import randrange
 
 
 
@@ -236,6 +237,13 @@ def view_map(df):
   get_pois_and_df_map(town_city, df, possible_tags, price_bin)
 
 
+def resample(df, size = 10000):
+  cols = df.columns
+  rows = list(df.to_records(index=False))
+  resampled_df = [rows[randrange(size)] for _ in range(size)]
+  return pd.DataFrame(resampled_df, columns = cols)
+
+
 def data():
     """Load the data from access and ensure missing values are correctly encoded as well as indices correct, column names informative, date and times correctly formatted. Return a structured data structure such as a data frame."""
     df = access.data()
@@ -269,7 +277,10 @@ def labelled(data, town_city):
   inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
   for i_key, key in zip(inverse_poi_tags, poi_tags):
     df[i_key] = 1 / (1 + df[key])
+  inverse_sold_tags = [f"inv_{tag}" for tag in ['sold_before', 'sold_total']]
+  for i_key, key in zip(inverse_sold_tags, ['sold_before', 'sold_total']):
+    df[i_key] = 1 / (1 + df[key])
   df = get_statistics_of_houses_sold_before(df)
   df = one_hot(df, 'pt', 'property_type')
-  columns = required_cols + one_hot_cols + house_stats_cols + list(poi_tags.keys()) + inverse_poi_tags
+  columns = required_cols + one_hot_cols + house_stats_cols + inverse_poi_tags + inverse_sold_tags
   return df[columns]
