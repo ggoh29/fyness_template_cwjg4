@@ -301,5 +301,5 @@ def labelled(df, town_city, poi_tags):
     df = pd.concat([df, P_df], axis = 1)
   else:
     df = one_hot(df, 'pt', 'property_type')
-  columns = required_cols + one_hot_cols + house_stats_cols + inverse_sold_tags
+  columns = required_cols + one_hot_cols + inverse_sold_tags + inverse_poi_tags
   return df[columns]
