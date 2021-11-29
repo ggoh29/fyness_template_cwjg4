@@ -56,7 +56,7 @@ def feature_importance(x, y, model):
 	features = x.columns
 	model.fit(x, y)
 
-	r = permutation_importance(model, x, y, n_repeats=10, random_state=0)
+	r = permutation_importance(model, x, y, n_repeats=20, random_state=0)
 
 	for i in r.importances_mean.argsort()[::-1]:
 		if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
