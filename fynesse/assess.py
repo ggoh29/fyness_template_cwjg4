@@ -177,7 +177,7 @@ def find_postcode(df, longitude, latitude, bounds=0.001):
   df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
 
   def euc_dis(row):
-    return (row['longitude'] - longitude)**2 + (row['latitude'] - latitude)**2
+    return (float(row['longitude']) - float(longitude))**2 + (float(row['latitude']) - float(latitude))**2
 
   df['distance'] = [euc_dis(row) for _, row in df.iterrows()]
   if len(df) == 0:
