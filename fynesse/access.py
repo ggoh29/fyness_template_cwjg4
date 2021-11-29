@@ -48,6 +48,21 @@ def create_connection(user, password, host, database, port=3306):
     print(f"Error connecting to the MariaDB Server: {e}")
   return conn
 
+def create_conn(database):
+  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
+                      "port": 3306}
+
+  with open("credentials.yaml") as file:
+    credentials = yaml.safe_load(file)
+  username = credentials["username"]
+  password = credentials["password"]
+  url = database_details["url"]
+
+  conn = create_connection(user=credentials["username"],
+                                 password=credentials["password"],
+                                 host=database_details["url"],
+                                 database=database)
+  return conn
 
 def get_postcode_data(conn):
   cur = conn.cursor()
@@ -69,7 +84,7 @@ def get_house_prices(conn):
   return pd.DataFrame(row, columns=cols)
 
 
-def get_house_prices_by_year(conn, year):
+def get_house_prices_by_year(year, conn):
   cur = conn.cursor()
 
   cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
@@ -88,72 +103,35 @@ def query():
   database = input('Which database do you want to use?')
   q = input('Insert an SQL query')
 
-  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
-                      "port": 3306}
-
-  with open("credentials.yaml") as file:
-    credentials = yaml.safe_load(file)
-  username = credentials["username"]
-  password = credentials["password"]
-  url = database_details["url"]
-
-  house_conn = create_connection(user=credentials["username"],
-                                 password=credentials["password"],
-                                 host=database_details["url"],
-                                 database=database)
-
-  cur = house_conn.cursor()
+  conn = create_conn(database)
+  cur = conn.cursor()
   cur.executy(q)
   return cur.fetchall()
 
 
 def data():
   """Read the data from the web or local file, returning structured format such as a data frame"""
-  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
-                      "port": 3306}
 
-  with open("credentials.yaml") as file:
-    credentials = yaml.safe_load(file)
-  username = credentials["username"]
-  password = credentials["password"]
-  url = database_details["url"]
-
-  house_conn = create_connection(user=credentials["username"],
-                                 password=credentials["password"],
-                                 host=database_details["url"],
-                                 database="house_prices")
-
+  house_conn = create_conn("house_prices")
   house_prices = get_house_prices(house_conn)
 
-  postcode_conn = create_connection(user=credentials["username"],
-                                 password=credentials["password"],
-                                 host=database_details["url"],
-                                 database="property_prices")
+  postcode_conn = create_conn("property_prices")
   property_prices = get_postcode_data(postcode_conn)
 
   return pd.merge(house_prices, property_prices, on = 'postcode', how = 'inner')
 
 
 def data_by_year(year : int):
-  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
-                      "port": 3306}
 
-  with open("credentials.yaml") as file:
-    credentials = yaml.safe_load(file)
-  username = credentials["username"]
-  password = credentials["password"]
-  url = database_details["url"]
-
-  house_conn = create_connection(user=credentials["username"],
-                                 password=credentials["password"],
-                                 host=database_details["url"],
-                                 database="house_prices")
-
+  house_conn = create_conn("house_prices")
   house_prices = get_house_prices_by_year(year, house_conn)
 
-  postcode_conn = create_connection(user=credentials["username"],
-                                    password=credentials["password"],
-                                    host=database_details["url"],
-                                    database="property_prices")
+  postcode_conn = create_conn("property_prices")
   property_prices = get_postcode_data(postcode_conn)
   return pd.merge(house_prices, property_prices, on='postcode', how='inner')
+
+
+def raw_postcodes():
+  postcode_conn = create_conn("property_prices")
+  property_prices = get_postcode_data(postcode_conn)
+  return property_prices
