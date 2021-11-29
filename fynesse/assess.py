@@ -22,7 +22,7 @@ import mlai
 import mlai.plot as plot
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from random import randrange
+import random
 
 
 
@@ -244,11 +244,13 @@ def view_map(df):
   get_pois_and_df_map(town_city, df, possible_tags, price_bin)
 
 
-def resample(df, size=10000):
+def resample(df, size=1000):
+  if len(df) >= size:
+    return df
   cols = df.columns
   rows = list(df.to_records(index=False))
-  resampled_df = [rows[randrange(size)] for _ in range(size)]
-  return pd.DataFrame(resampled_df, columns=cols)
+  resampled_df = [rows[random.randint(0, size-1)] for _ in range(size)]
+  return pd.DataFrame(resampled_df, columns=cols).reset_index(drop = True)
 
 
 def data():
