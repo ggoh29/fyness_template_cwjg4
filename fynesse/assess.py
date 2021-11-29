@@ -109,7 +109,7 @@ def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
 
 def get_pois_and_df_map(town_city, df, tags, price_bin):
   """View of place of interest with scatter plot of house prices for a given town city"""
-  df2 = df.loc[df.town_city == town_city].reset_index(drop=True)
+  df2 = df.reset_index(drop=True)
   df2['price'] = np.digitize(df2['price'], price_bin)
 
   north, south, east, west = get_lat_and_long_box(df)
