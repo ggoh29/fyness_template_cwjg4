@@ -20,31 +20,37 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import r2_score
 import random
 import pandas as pd
+
 """Address a particular question that arises from the data"""
+
 
 def get_basic_linear_regressor():
 	return LinearRegression()
 
+
 def generate_train_test_split(df, test_size=0.1):
 	return train_test_split(df, test_size=test_size)
 
-def split_data_into_x_and_y(df, y_col = 'price'):
+
+def split_data_into_x_and_y(df, y_col='price'):
 	lst = list(df.columns)
 	lst.remove(y_col)
 	return df[lst], df[y_col]
 
+
 def resample(df, size=1000):
-  l = len(df)
-  if l >= size:
-    return df
-  cols = list(df.columns)
-  rows = list(df.to_records(index=False))
-  resampled_df = [rows[random.randint(0, l-1)] for _ in range(size)]
-  resampled_df = [*zip(*resampled_df)]
-  dct = {}
-  for index, col in zip(cols, resampled_df):
-    dct[index] = col
-  return pd.DataFrame(dct)
+	l = len(df)
+	if l >= size:
+		return df
+	cols = list(df.columns)
+	rows = list(df.to_records(index=False))
+	resampled_df = [rows[random.randint(0, l - 1)] for _ in range(size)]
+	resampled_df = [*zip(*resampled_df)]
+	dct = {}
+	for index, col in zip(cols, resampled_df):
+		dct[index] = col
+	return pd.DataFrame(dct)
+
 
 def feature_importance(x, y, model):
 	features = x.columns

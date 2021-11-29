@@ -170,14 +170,20 @@ def get_pois(place_name, df, poi_tags):
   return df
 
 
-def find_postcode(df, longitude, latitude, bounds=0.0002):
+def find_postcode(df, longitude, latitude, bounds=0.001):
   # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
   # so working around it
   df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
   df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
+
+  def euc_dis(row):
+    return (row['longitude'] - longitude)**2 + (row['latitude'] - latitude)**2
+
+  df['distance'] = [euc_dis(row) for _, row in df.iterrows()]
   if len(df) == 0:
     raise Exception("Check your longitude and latitudes. They might not correspond to a location in the UK")
-  return df['postcode'].item()
+  df = df.sort_values(by = ['distance'])
+  return df['postcode'].tolist()[0]
 
 
 def scale_and_reduce(df, cols):
