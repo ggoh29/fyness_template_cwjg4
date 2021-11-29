@@ -184,12 +184,14 @@ def find_postcode(df, longitude, latitude, bounds=0.001):
   return df['postcode'].tolist()[0]
 
 
-def scale_and_reduce(df, cols):
+def scale_and_reduce(df):
   """For PCA, some columns need to be scaled"""
-  df_1 = df[cols]
+  cols_to_keep = list(df.columns)
+  cols_to_keep.remove('price')
+  df_1 = df[cols_to_keep]
   scaled = preprocessing.scale(df_1)
-  df_1_s = pd.DataFrame(scaled, columns=cols)
-  df = df.drop(cols, axis=1)
+  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
+  df = df.drop(cols_to_keep, axis=1)
   return df.join(df_1_s)
 
 
