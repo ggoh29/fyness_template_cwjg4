@@ -59,7 +59,6 @@ def get_statistics_of_houses_sold_before(df):
 
   def get_number(row, df=df, months_prior=1):
     area, d1 = row['postcode'], row['date_of_transfer']
-    # d = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M")
     d2 = d1 - dateutil.relativedelta.relativedelta(months=months_prior)
     df = df[df['postcode'] == area]
     total = len(df)
@@ -110,7 +109,6 @@ def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
 def get_pois_and_df_map(town_city, df, tags, price_bin):
   """View of place of interest with scatter plot of house prices for a given town city"""
   df2 = df.reset_index(drop=True)
-  df2['price'] = np.digitize(df2['price'], price_bin)
 
   north, south, east, west = get_lat_and_long_box(df)
 
@@ -240,11 +238,7 @@ def view_pca(df):
 
 def view_map(df):
   """Generates a 2d map of the area including pois and the cost of the houses"""
-  town_city_set = set(df.town_city.unique())
   town_city = None
-  print(town_city_set)
-  while town_city not in town_city_set:
-    town_city = input("Which town city map do you want to view?")
   possible_tags = {"amenity": 0, "buildings": 0, "historic": 0, "leisure": 0, "shop": 0, "tourism": 0}
   for tag in possible_tags:
     value = bool(input(f"View tag {tag}? 1 for yes, 0 for no"))
