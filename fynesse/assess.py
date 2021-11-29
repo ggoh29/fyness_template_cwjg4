@@ -163,6 +163,18 @@ def get_pois(place_name, df, poi_tags):
   return df
 
 
+def find_postcode(df, longitude, latitude, bounds = 0.0001):
+  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
+  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
+
+  def euc_distance(row):
+    return (row['longitude'] - longitude)**2 + (row['latitude'] - latitude)**2
+
+  df['distance'] = df.apply(euc_distance, axis = 1)
+  df = df.sort_values(by=['distance'])
+  return df['town_city'][0]
+
+
 def scale_and_reduce(df, cols):
   """For PCA, some columns need to be scaled"""
   df_1 = df[cols]
@@ -235,9 +247,7 @@ def data():
 
 
 def query(data):
-
-    """Request user input for some aspect of the data."""
-    raise NotImplementedError
+  return
 
 
 def view(data) -> None:

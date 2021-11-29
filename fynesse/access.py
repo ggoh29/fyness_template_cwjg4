@@ -69,30 +69,46 @@ def get_house_prices(conn):
   return pd.DataFrame(row, columns=cols)
 
 
-def get_house_prices_by_year_and_county(year, county, conn):
+def get_house_prices_by_year(conn, year):
   cur = conn.cursor()
-  cur.execute(f"""SELECT price, date_of_transfer, postcode, property_type, new_build_flag,
-     tenure_type, locality, town_city, district,
-     county, db_id FROM pp_data_2
-    WHERE date_of_transfer >= '{year}-01-01 00:00:00'
-       AND date_of_transfer < '{year + 1}-01-01 00:00:00'
-       AND county = '{county}'""")
+
+  cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
+     tenure_type, locality, town_city, district, 
+     county, db_id, postcode FROM pp_data_2
+     WHERE date_of_transfer >= '{year - 1}-01-01 00:00:00'
+       AND date_of_transfer < '{year + 1}-01-01 00:00:00'""")
   row = cur.fetchall()
+
   cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id']
   return pd.DataFrame(row, columns=cols)
 
 
+
+def query():
+  database = input('Which database do you want to use?')
+  q = input('Insert an SQL query')
+
+  database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
+                      "port": 3306}
+
+  with open("credentials.yaml") as file:
+    credentials = yaml.safe_load(file)
+  username = credentials["username"]
+  password = credentials["password"]
+  url = database_details["url"]
+
+  house_conn = create_connection(user=credentials["username"],
+                                 password=credentials["password"],
+                                 host=database_details["url"],
+                                 database=database)
+
+  cur = house_conn.cursor()
+  cur.executy(q)
+  return cur.fetchall()
+
+
 def data():
   """Read the data from the web or local file, returning structured format such as a data frame"""
-
-  @interact_manual(username=Text(description="Username:"),
-                   password=Password(description="Password:"))
-  def write_credentials(username, password):
-    with open("credentials.yaml", "w") as file:
-      credentials_dict = {'username': username,
-                          'password': password}
-      yaml.dump(credentials_dict, file)
-
   database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
                       "port": 3306}
 
@@ -118,7 +134,7 @@ def data():
   return pd.merge(house_prices, property_prices, on = 'postcode', how = 'inner')
 
 
-def data_by_year_and_county():
+def data_by_year(year : int):
   database_details = {"url": "database-1.cx4sotafoi1m.eu-west-2.rds.amazonaws.com",
                       "port": 3306}
 
@@ -133,9 +149,7 @@ def data_by_year_and_county():
                                  host=database_details["url"],
                                  database="house_prices")
 
-  year = int(input("Which year do you want?"))
-  county = f"{input('Which county do you want?')}"
-  house_prices = get_house_prices_by_year_and_county(year, county, house_conn)
+  house_prices = get_house_prices_by_year(year, house_conn)
 
   postcode_conn = create_connection(user=credentials["username"],
                                     password=credentials["password"],
