@@ -238,7 +238,7 @@ def view_pca(df):
 
 def view_map(df):
   """Generates a 2d map of the area including pois and the cost of the houses"""
-  town_city = None
+  town_city = df['town_city'].unique().item()
   possible_tags = {"amenity": 0, "buildings": 0, "historic": 0, "leisure": 0, "shop": 0, "tourism": 0}
   for tag in possible_tags:
     value = bool(input(f"View tag {tag}? 1 for yes, 0 for no"))
