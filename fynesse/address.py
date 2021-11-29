@@ -22,6 +22,12 @@ from sklearn.ensemble import GradientBoostingClassifier
 def generate_train_test_split(df, test_size=0.1):
 	return train_test_split(df, test_size=test_size)
 
+def split_data_into_x_and_y(df, y_col = 'price'):
+	lst = list(df.columns)
+	lst.remove(y_col)
+	return df[lst], df[y_col]
+
+
 def feature_importance(x, y, model):
 	features = x.columns
 	model.fit(x, y)

@@ -245,12 +245,17 @@ def view_map(df):
 
 
 def resample(df, size=1000):
-  if len(df) >= size:
+  l = len(df)
+  if l >= size:
     return df
-  cols = df.columns
+  cols = list(df.columns)
   rows = list(df.to_records(index=False))
-  resampled_df = [rows[random.randint(0, size-1)] for _ in range(size)]
-  return pd.DataFrame(resampled_df, columns=cols).reset_index(drop = True)
+  resampled_df = [rows[random.randint(0, l-1)] for _ in range(size)]
+  resampled_df = [*zip(*resampled_df)]
+  dct = {}
+  for index, col in zip(cols, resampled_df):
+    dct[index] = col
+  return pd.DataFrame(dct)
 
 
 def data():
@@ -278,7 +283,7 @@ def view(data) -> None:
 def labelled(df, town_city):
   """Provide a labelled set of data ready for supervised learning."""
   # Feature that I want to include unfortunately have to be hard coded in
-  required_cols = ['price', 'date_of_transfer', 'postcode', 'latitude', 'longitude']
+  required_cols = ['price', 'latitude', 'longitude']
   one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
   house_stats_cols = ['sold_before', 'sold_total', 'average_price_of_area']
   poi_tags = {'amenity': True, 'shop': True, 'tourism': True, 'leisure': True}
