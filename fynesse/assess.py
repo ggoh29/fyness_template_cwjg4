@@ -280,21 +280,23 @@ def view(data) -> None:
   f[view_type](data)
 
 
-def labelled(df, town_city):
+def labelled(df, town_city, poi_tags):
   """Provide a labelled set of data ready for supervised learning."""
   # Feature that I want to include unfortunately have to be hard coded in
   required_cols = ['price', 'latitude', 'longitude']
   one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
   house_stats_cols = ['sold_before', 'sold_total', 'average_price_of_area']
-  poi_tags = {'amenity': True, 'shop': True, 'tourism': True, 'leisure': True}
+
   df = get_pois(town_city, df, poi_tags)
   inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
   for i_key, key in zip(inverse_poi_tags, poi_tags):
     df[i_key] = 1 / (1 + df[key])
+
   df = get_statistics_of_houses_sold_before(df)
   inverse_sold_tags = [f"inv_{tag}" for tag in ['sold_before', 'sold_total']]
   for i_key, key in zip(inverse_sold_tags, ['sold_before', 'sold_total']):
     df[i_key] = 1 / (1 + df[key])
+
   df = one_hot(df, 'pt', 'property_type')
   columns = required_cols + one_hot_cols + house_stats_cols + inverse_sold_tags
   return df[columns]
