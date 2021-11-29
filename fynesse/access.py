@@ -99,6 +99,17 @@ def get_house_prices_by_year(year, conn):
   return pd.DataFrame(row, columns=cols)
 
 
+def get_towncity_from_postcode(postcode, conn):
+  cur = conn.cursor()
+
+  cur.execute(f"""SELECT town_city, postcode FROM pp_data_2
+     WHERE postcode = {postcode}""")
+  row = cur.fetchall()
+
+  cols = ['town_city, postcode']
+  df = pd.DataFrame(row, columns=cols)
+  return df['town_city'].unique()[0]
+
 
 def query():
   database = input('Which database do you want to use?')
@@ -136,3 +147,8 @@ def raw_postcodes():
   postcode_conn = create_conn("property_prices")
   property_prices = get_postcode_data(postcode_conn)
   return property_prices
+
+
+def get_town_given_postcode(postcode):
+  house_conn = create_conn("house_prices")
+  return get_towncity_from_postcode(postcode, house_conn)
