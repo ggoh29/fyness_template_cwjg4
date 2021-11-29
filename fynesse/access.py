@@ -99,14 +99,29 @@ def get_house_prices_by_year(year, conn):
   return pd.DataFrame(row, columns=cols)
 
 
+def get_house_prices_by_year_and_town_city(year, city, conn):
+  cur = conn.cursor()
+
+  cur.execute(f"""SELECT price, date_of_transfer, property_type, new_build_flag, 
+     tenure_type, locality, town_city, district, 
+     county, db_id, postcode FROM pp_data_2
+     WHERE date_of_transfer >= '{year - 1}-01-01 00:00:00'
+       AND date_of_transfer < '{year + 1}-01-01 00:00:00'
+       AND town_city = '{city}'""")
+  row = cur.fetchall()
+
+  cols = ['price', 'date_of_transfer', 'postcode', 'property_type', 'new_build_flag', 'tenure_type', 'locality', 'town_city', 'district', 'county', 'db_id']
+  return pd.DataFrame(row, columns=cols)
+
+
 def get_towncity_from_postcode(postcode, conn):
   cur = conn.cursor()
 
   cur.execute(f"""SELECT town_city, postcode FROM pp_data_2
-     WHERE postcode = {postcode}""")
+     WHERE postcode = '{postcode}'""")
   row = cur.fetchall()
 
-  cols = ['town_city, postcode']
+  cols = ['town_city', 'postcode']
   df = pd.DataFrame(row, columns=cols)
   return df['town_city'].unique()[0]
 
@@ -137,6 +152,16 @@ def data_by_year(year : int):
 
   house_conn = create_conn("house_prices")
   house_prices = get_house_prices_by_year(year, house_conn)
+
+  postcode_conn = create_conn("property_prices")
+  property_prices = get_postcode_data(postcode_conn)
+  return pd.merge(house_prices, property_prices, on='postcode', how='inner')
+
+
+def data_by_year_and_town_city(year : int, town_city : str):
+
+  house_conn = create_conn("house_prices")
+  house_prices = get_house_prices_by_year_and_town_city(year, town_city, house_conn)
 
   postcode_conn = create_conn("property_prices")
   property_prices = get_postcode_data(postcode_conn)
