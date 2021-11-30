@@ -169,14 +169,21 @@ def get_pois_and_df_map(town_city, df, tags, price_bin):
 def view_price(df, all_cols = False):
   """View price against a single column"""
   col = None
-  while not all_cols or col not in df.columns:
-    # Using this loop since I don't really want to do too much error handling
-    print(df.columns)
-    col = input("Enter the column name you want to view price against")
-  plt.figure()
-  plt.title(f"Graph of {col} against price")
-  plt.scatter(df[col], df['price'])
-  plt.show()
+  if all_cols:
+    for col in df.columns:
+      plt.figure()
+      plt.title(f"Graph of {col} against price")
+      plt.scatter(df[col], df['price'])
+      plt.show()
+  else:
+    while col not in df.columns:
+      # Using this loop since I don't really want to do too much error handling
+      print(df.columns)
+      col = input("Enter the column name you want to view price against")
+    plt.figure()
+    plt.title(f"Graph of {col} against price")
+    plt.scatter(df[col], df['price'])
+    plt.show()
 
 
 def view_pca(df):
