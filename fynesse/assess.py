@@ -283,7 +283,7 @@ def add_one_hot_property_type(df, one_hot_cols):
 
 
 def add_postcode_number(df):
-  postcode_data = [row['postcode'][row['postcode'].index(' '): -2] for _, row in df.iterrows]
+  postcode_data = [int(row['postcode'][row['postcode'].index(' '): -2]) for _, row in df.iterrows]
   df['postcode'] = postcode_data
   return df
 
