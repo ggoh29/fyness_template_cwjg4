@@ -68,7 +68,7 @@ def get_lat_and_long_box(df):
 
 
 def get_mean_lat_and_long(df):
-  latitude, longitude = np.mean(df['latitude']), np.mean(df['latitude'])
+  latitude, longitude = np.mean(df['latitude']), np.mean(df['longitude'])
   return latitude, longitude
 
 
