@@ -38,7 +38,7 @@ def split_data_into_x_and_y(df, y_col='price'):
 	return df[lst], df[y_col]
 
 
-def resample(df, size=1000):
+def resample(df, size=5000):
 	l = len(df)
 	if l >= size:
 		return df
