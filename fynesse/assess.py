@@ -67,11 +67,21 @@ def get_lat_and_long_box(df):
   return float(lat_max), float(lat_min), float(lon_max), float(lon_min)
 
 
+def get_mean_lat_and_long(df):
+  latitude, longitude = np.mean(df['latitude']), np.mean(df['latitude'])
+  return latitude, longitude
+
+
+def filter_to_only_data_within_box(df, latitude, longitude, bounds):
+  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
+  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
+  return df
+
+
 def find_postcode(df, longitude, latitude, bounds=0.001):
   # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
   # so working around it
-  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
-  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
+  df = filter_to_only_data_within_box(df, latitude, longitude, bounds)
 
   def euc_dis(row):
     return (float(row['longitude']) - float(longitude))**2 + (float(row['latitude']) - float(latitude))**2
@@ -219,8 +229,7 @@ def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
   if poi_tag not in pois.columns:
     return 0
   pois = pois[pois[poi_tag].notnull()]
-  pois = pois[(pois['longitude'] < float(longitude) + bounds) & (pois['longitude'] > float(longitude) - bounds)]
-  pois = pois[(pois['latitude'] < float(latitude) + bounds) & (pois['latitude'] > float(latitude) - bounds)]
+  pois = filter_to_only_data_within_box(pois, latitude, longitude, bounds)
   return len(pois)
 
 
@@ -283,7 +292,7 @@ def add_one_hot_property_type(df, one_hot_cols):
 
 
 def add_postcode_number(df):
-  postcode_data = [int(row['postcode'][row['postcode'].index(' '): -2]) for _, row in df.iterrows]
+  postcode_data = [int(row['postcode'][row['postcode'].index(' '): -2]) for _, row in df.iterrows()]
   df['postcode'] = postcode_data
   return df
 
