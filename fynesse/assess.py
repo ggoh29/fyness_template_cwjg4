@@ -24,9 +24,9 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA
 
 
-
-
 """Place commands in this file to assess the data you have downloaded. How are missing values encoded, how are outliers encoded? What do columns represent, makes rure they are correctly labeled. How is the data indexed. Crete visualisation routines to assess the data (e.g. in bokeh). Ensure that date formats are correct and correctly timezoned."""
+
+"""The following functions mostly have to deal with cleaning data"""
 
 
 def one_hot(df, col_prefix, col):
@@ -48,30 +48,41 @@ def bin_price(df):
   return df
 
 
+def scale_and_reduce(df):
+  """For PCA, some columns need to be scaled"""
+  cols_to_keep = list(df.columns)
+  cols_to_keep.remove('price')
+  df_1 = df[cols_to_keep]
+  scaled = preprocessing.scale(df_1)
+  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
+  df = df.drop(cols_to_keep, axis=1)
+  return df.join(df_1_s)
+
+
+"""The following functions deal with finding specific data"""
+
 def get_lat_and_long_box(df):
   lat_min, lat_max = min(df['latitude']), max(df['latitude'])
   lon_min, lon_max = min(df['longitude']), max(df['longitude'])
   return float(lat_max), float(lat_min), float(lon_max), float(lon_min)
 
 
-def get_statistics_of_houses_sold_before(df):
-  """Find the statistics of houses sold in a given location to check the immediate demand"""
+def find_postcode(df, longitude, latitude, bounds=0.001):
+  # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
+  # so working around it
+  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
+  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
 
-  def get_number(row, df=df, months_prior=1):
-    area, d1 = row['postcode'], row['date_of_transfer']
-    d2 = d1 - dateutil.relativedelta.relativedelta(months=months_prior)
-    df = df[df['postcode'] == area]
-    total = len(df)
-    number_sold_before = df[(df['date_of_transfer'] < d1) & (df['date_of_transfer'] > d2)]
-    sold_before = len(number_sold_before)
-    average_price = np.mean(df['price'])
-    return sold_before, total, average_price
+  def euc_dis(row):
+    return (float(row['longitude']) - float(longitude))**2 + (float(row['latitude']) - float(latitude))**2
 
-  stats = [get_number(row) for _, row in df.iterrows()]
-  df1 = pd.DataFrame(stats, columns=['sold_before', 'sold_total', 'average_price_of_area'])
-  df = pd.concat([df, df1], axis=1)
-  df.fillna(0)
-  return df
+  df['distance'] = [euc_dis(row) for _, row in df.iterrows()]
+  if len(df) == 0:
+    raise Exception("Check your longitude and latitudes. They might not correspond to a location in the UK")
+  df = df.sort_values(by = ['distance'])
+  return df['postcode'].tolist()[0]
+
+"""The following functions have to do with viewing data"""
 
 
 def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
@@ -96,6 +107,7 @@ def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
   # Plot street edges
   edges.plot(ax=ax, linewidth=1, edgecolor="dimgray")
 
+  ax.title(f"Map of {town_city}")
   ax.set_xlim([west, east])
   ax.set_ylim([south, north])
   ax.set_xlabel("longitude")
@@ -126,6 +138,7 @@ def get_pois_and_df_map(town_city, df, tags, price_bin):
   # Plot street edges
   edges.plot(ax=ax, linewidth=1, edgecolor="dimgray")
 
+  ax.title(f"Map of {town_city}")
   ax.set_xlim([west, east])
   ax.set_ylim([south, north])
   ax.set_xlabel("longitude")
@@ -143,65 +156,15 @@ def get_pois_and_df_map(town_city, df, tags, price_bin):
   plt.tight_layout()
 
 
-def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
-  if poi_tag not in pois.columns:
-    return 0
-  pois = pois[pois[poi_tag].notnull()]
-  pois = pois[(pois['longitude'] < float(longitude) + bounds) & (pois['longitude'] > float(longitude) - bounds)]
-  pois = pois[(pois['latitude'] < float(latitude) + bounds) & (pois['latitude'] > float(latitude) - bounds)]
-  return len(pois)
-
-
-def get_pois(place_name, df, poi_tags):
-  """Given a place_name and tags, for each poi_tag find the number of pois in the vicinity of each house in df"""
-  df = df.loc[df.town_city == place_name].reset_index(drop=True)
-  north, south, east, west = get_lat_and_long_box(df)
-  pois = ox.geometries_from_bbox(north, south, east, west, poi_tags)
-  pois = pois.xs('node').reset_index(drop = True)
-  lat_and_long = [row.geometry.representative_point().coords[:][0] for _, row in pois.iterrows()]
-  lat_and_long = pd.DataFrame(lat_and_long, columns=['longitude', 'latitude'])
-  pois = pd.concat([pois, lat_and_long], axis=1)
-  for poi_tag in poi_tags:
-    df[poi_tag] = [count_nearby_pois(row['latitude'], row['longitude'], poi_tag, 0.02, pois) for _, row in
-                   df.iterrows()]
-  return df
-
-
-def find_postcode(df, longitude, latitude, bounds=0.001):
-  # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
-  # so working around it
-  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
-  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
-
-  def euc_dis(row):
-    return (float(row['longitude']) - float(longitude))**2 + (float(row['latitude']) - float(latitude))**2
-
-  df['distance'] = [euc_dis(row) for _, row in df.iterrows()]
-  if len(df) == 0:
-    raise Exception("Check your longitude and latitudes. They might not correspond to a location in the UK")
-  df = df.sort_values(by = ['distance'])
-  return df['postcode'].tolist()[0]
-
-
-def scale_and_reduce(df):
-  """For PCA, some columns need to be scaled"""
-  cols_to_keep = list(df.columns)
-  cols_to_keep.remove('price')
-  df_1 = df[cols_to_keep]
-  scaled = preprocessing.scale(df_1)
-  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
-  df = df.drop(cols_to_keep, axis=1)
-  return df.join(df_1_s)
-
-
-def view_price(df):
+def view_price(df, all_cols = False):
   """View price against a single column"""
   col = None
-  while col not in df.columns:
+  while not all_cols or col not in df.columns:
     # Using this loop since I don't really want to do too much error handling
     print(df.columns)
     col = input("Enter the column name you want to view price against")
   plt.figure()
+  plt.title(f"Graph of {col} against price")
   plt.scatter(df[col], df['price'])
   plt.show()
 
@@ -228,6 +191,7 @@ def view_pca(df):
   elif dim == 2:
     for index, row in df.iterrows():
       plt.scatter(row[0], row[1], color=colors[int(row['price']) - 1])
+    print("Red represents the most expensive 10% house in the area, violet represents the least expensive 10%.")
 
   elif dim == 3:
     fig = plt.figure()
@@ -235,6 +199,7 @@ def view_pca(df):
     for _, row in df.iterrows():
       ax.scatter(row[0], row[1], row[2], color=colors[int(row['price']) - 1])
     plt.show()
+    print("Red represents the most expensive 10% house in the area, violet represents the least expensive 10%.")
 
 
 def view_map(df):
@@ -247,6 +212,83 @@ def view_map(df):
   price_bin = bin_price(df)
   get_pois_and_df_map(town_city, df, possible_tags, price_bin)
 
+
+"""The following functions mostly have to deal with adding features to the data"""
+
+def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
+  if poi_tag not in pois.columns:
+    return 0
+  pois = pois[pois[poi_tag].notnull()]
+  pois = pois[(pois['longitude'] < float(longitude) + bounds) & (pois['longitude'] > float(longitude) - bounds)]
+  pois = pois[(pois['latitude'] < float(latitude) + bounds) & (pois['latitude'] > float(latitude) - bounds)]
+  return len(pois)
+
+
+def add_pois(place_name, df, poi_tags):
+  """Given a place_name and tags, for each poi_tag find the number of pois in the vicinity of each house in df"""
+  df = df.loc[df.town_city == place_name].reset_index(drop=True)
+  north, south, east, west = get_lat_and_long_box(df)
+  pois = ox.geometries_from_bbox(north, south, east, west, poi_tags)
+  pois = pois.xs('node').reset_index(drop = True)
+  lat_and_long = [row.geometry.representative_point().coords[:][0] for _, row in pois.iterrows()]
+  lat_and_long = pd.DataFrame(lat_and_long, columns=['longitude', 'latitude'])
+  pois = pd.concat([pois, lat_and_long], axis=1)
+  for poi_tag in poi_tags:
+    df[poi_tag] = [count_nearby_pois(row['latitude'], row['longitude'], poi_tag, 0.02, pois) for _, row in
+                   df.iterrows()]
+  return df
+
+
+def get_statistics_of_houses_sold_before(df):
+  """Find the statistics of houses sold in a given location to check the immediate demand"""
+
+  def get_number(row, df=df, months_prior=1):
+    area, d1 = row['postcode'], row['date_of_transfer']
+    d2 = d1 - dateutil.relativedelta.relativedelta(months=months_prior)
+    df = df[df['postcode'] == area]
+    total = len(df)
+    number_sold_before = df[(df['date_of_transfer'] < d1) & (df['date_of_transfer'] > d2)]
+    sold_before = len(number_sold_before)
+    average_price = np.mean(df['price'])
+    return sold_before, total, average_price
+
+  stats = [get_number(row) for _, row in df.iterrows()]
+  df1 = pd.DataFrame(stats, columns=['sold_before', 'sold_total', 'average_price_of_area'])
+  df = pd.concat([df, df1], axis=1)
+  df.fillna(0)
+  return df
+
+
+def add_inverse_of_columns(df, col_lst):
+  inverse_col_lst = [f"inv_{tag}" for tag in col_lst]
+  for i_key, key in zip(inverse_col_lst, col_lst):
+    df[i_key] = 1 / (1 + df[key])
+  return df
+
+
+def add_one_hot_property_type(df, one_hot_cols):
+  if len(df['property_type'].unique()) < 5:
+    property_dct = {'D': [1, 0, 0, 0, 0],
+                    'F': [0, 1, 0, 0, 0],
+                    'O': [0, 0, 1, 0, 0],
+                    'S': [0, 0, 0, 1, 0],
+                    'T': [0, 0, 0, 0, 1]}
+    P_df = [property_dct[row['property_type']] for _, row in df.iterrows()]
+    df = df.drop(columns=['property_type'])
+    P_df = pd.DataFrame(P_df, columns = one_hot_cols)
+    df = pd.concat([df, P_df], axis = 1)
+  else:
+    df = one_hot(df, 'pt', 'property_type')
+  return df
+
+
+def add_postcode_number(df):
+  postcode_data = [row['postcode'][row['postcode'].index(' '): -2] for _, row in df.iterrows]
+  df['postcode'] = postcode_data
+  return df
+
+
+"""Standard assess functions"""
 
 def data():
   """Load the data from access and ensure missing values are correctly encoded as well as indices correct, column names informative, date and times correctly formatted. Return a structured data structure such as a data frame."""
@@ -273,32 +315,17 @@ def view(data) -> None:
 def labelled(df, town_city, poi_tags):
   """Provide a labelled set of data ready for supervised learning."""
   # Feature that I want to include unfortunately have to be hard coded in
+
   required_cols = ['price', 'latitude', 'longitude']
   one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
-  # house_stats_cols = ['sold_before', 'sold_total', 'average_price_of_area']
   house_stats_cols =  ['sold_before', 'sold_total']
-
-  df = get_pois(town_city, df, poi_tags)
+  inverse_house_stats_cols  = [f"inv_{tag}" for tag in house_stats_cols]
   inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
-  for i_key, key in zip(inverse_poi_tags, poi_tags):
-    df[i_key] = 1 / (1 + df[key])
 
+  df = add_pois(town_city, df, poi_tags)
+  df = add_inverse_of_columns(df, poi_tags)
+  df = add_inverse_of_columns(df, house_stats_cols)
   df = get_statistics_of_houses_sold_before(df)
-  inverse_sold_tags = [f"inv_{tag}" for tag in ['sold_before', 'sold_total']]
-  for i_key, key in zip(inverse_sold_tags, ['sold_before', 'sold_total']):
-    df[i_key] = 1 / (1 + df[key])
 
-  if len(df['property_type'].unique()) < 5:
-    property_dct = {'D': [1, 0, 0, 0, 0],
-                    'F': [0, 1, 0, 0, 0],
-                    'O': [0, 0, 1, 0, 0],
-                    'S': [0, 0, 0, 1, 0],
-                    'T': [0, 0, 0, 0, 1]}
-    P_df = [property_dct[row['property_type']] for _, row in df.iterrows()]
-    df = df.drop(columns=['property_type'])
-    P_df = pd.DataFrame(P_df, columns = one_hot_cols)
-    df = pd.concat([df, P_df], axis = 1)
-  else:
-    df = one_hot(df, 'pt', 'property_type')
-  columns = required_cols + one_hot_cols + inverse_sold_tags + house_stats_cols + inverse_poi_tags
+  columns = required_cols + one_hot_cols + inverse_house_stats_cols + house_stats_cols + inverse_poi_tags
   return df[columns]
