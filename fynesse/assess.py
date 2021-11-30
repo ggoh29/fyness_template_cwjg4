@@ -95,7 +95,7 @@ def find_postcode(df, longitude, latitude, bounds=0.001):
 """The following functions have to do with viewing data"""
 
 
-def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
+def view_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
   """View of place of interest for a given town city"""
   box_width = diff_lat
   box_height = diff_long
@@ -128,7 +128,7 @@ def get_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
   plt.tight_layout()
 
 
-def get_pois_and_df_map(town_city, df, tags, price_bin):
+def view_pois_and_df_map(town_city, df, tags, price_bin):
   """View of place of interest with scatter plot of house prices for a given town city"""
   df2 = df.reset_index(drop=True)
 
@@ -227,7 +227,7 @@ def view_map(df):
     value = bool(input(f"View tag {tag}? 1 for yes, 0 for no"))
     possible_tags[tag] = value
   price_bin = bin_price(df)
-  get_pois_and_df_map(town_city, df, possible_tags, price_bin)
+  view_pois_and_df_map(town_city, df, possible_tags, price_bin)
 
 
 """The following functions mostly have to deal with adding features to the data"""
@@ -255,7 +255,7 @@ def add_pois(place_name, df, poi_tags):
   return df
 
 
-def get_statistics_of_houses_sold_before(df):
+def add_statistics_of_houses_sold_before(df):
   """Find the statistics of houses sold in a given location to check the immediate demand"""
 
   def get_number(row, df=df, months_prior=1):
@@ -333,7 +333,7 @@ def labelled(df, town_city, poi_tags):
   # Feature that I want to include unfortunately have to be hard coded in
 
   required_cols = ['price', 'latitude', 'longitude']
-  one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
+  property_one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
   house_stats_cols =  ['sold_before', 'sold_total']
   inverse_house_stats_cols  = [f"inv_{tag}" for tag in house_stats_cols]
   inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
@@ -341,7 +341,8 @@ def labelled(df, town_city, poi_tags):
   df = add_pois(town_city, df, poi_tags)
   df = add_inverse_of_columns(df, poi_tags)
   df = add_inverse_of_columns(df, house_stats_cols)
-  df = get_statistics_of_houses_sold_before(df)
+  df = add_statistics_of_houses_sold_before(df)
+  df = add_one_hot_property_type(df, property_one_hot_cols)
 
-  columns = required_cols + one_hot_cols + inverse_house_stats_cols + house_stats_cols + inverse_poi_tags
+  columns = required_cols + property_one_hot_cols + inverse_house_stats_cols + house_stats_cols + inverse_poi_tags
   return df[columns]
