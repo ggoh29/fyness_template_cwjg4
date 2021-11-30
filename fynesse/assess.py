@@ -157,7 +157,7 @@ def get_pois(place_name, df, poi_tags):
   df = df.loc[df.town_city == place_name].reset_index(drop=True)
   north, south, east, west = get_lat_and_long_box(df)
   pois = ox.geometries_from_bbox(north, south, east, west, poi_tags)
-  pois = pois.xs('node')
+  pois = pois.xs('node').reset_index(drop = True)
   lat_and_long = [row.geometry.representative_point().coords[:][0] for _, row in pois.iterrows()]
   lat_and_long = pd.DataFrame(lat_and_long, columns=['longitude', 'latitude'])
   print(lat_and_long)
