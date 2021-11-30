@@ -147,7 +147,6 @@ def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
   if poi_tag not in pois.columns:
     return 0
   pois = pois[pois[poi_tag].notnull()]
-  print(pois)
   pois = pois[(pois['longitude'] < float(longitude) + bounds) & (pois['longitude'] > float(longitude) - bounds)]
   pois = pois[(pois['latitude'] < float(latitude) + bounds) & (pois['latitude'] > float(latitude) - bounds)]
   return len(pois)
@@ -163,7 +162,7 @@ def get_pois(place_name, df, poi_tags):
   lat_and_long = pd.DataFrame(lat_and_long, columns=['longitude', 'latitude'])
   print(lat_and_long)
   pois = pd.concat([pois, lat_and_long], axis=1)
-
+  print(pois)
   for poi_tag in poi_tags:
     df[poi_tag] = [count_nearby_pois(row['latitude'], row['longitude'], poi_tag, 0.02, pois) for _, row in
                    df.iterrows()]
