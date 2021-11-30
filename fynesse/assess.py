@@ -160,9 +160,7 @@ def get_pois(place_name, df, poi_tags):
   pois = pois.xs('node').reset_index(drop = True)
   lat_and_long = [row.geometry.representative_point().coords[:][0] for _, row in pois.iterrows()]
   lat_and_long = pd.DataFrame(lat_and_long, columns=['longitude', 'latitude'])
-  print(lat_and_long)
   pois = pd.concat([pois, lat_and_long], axis=1)
-  print(pois)
   for poi_tag in poi_tags:
     df[poi_tag] = [count_nearby_pois(row['latitude'], row['longitude'], poi_tag, 0.02, pois) for _, row in
                    df.iterrows()]
