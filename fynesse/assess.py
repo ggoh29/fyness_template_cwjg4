@@ -75,7 +75,7 @@ def get_mean_lat_and_long(df):
 def filter_to_only_data_within_box(df, latitude, longitude, bounds):
   df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
   df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
-  return df
+  return df.reset_index(drop = True)
 
 
 def find_postcode(df, longitude, latitude, bounds=0.001):
