@@ -85,17 +85,17 @@ def train_and_predict(model, train, input):
 
 
 def scale_and_reduce(df):
-  """For PCA, some columns need to be scaled"""
-  cols_to_keep = list(df.columns)
-  cols_to_keep.remove('price')
-  df_1 = df[cols_to_keep]
-  scaled = preprocessing.scale(df_1)
-  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
-  df = df.drop(cols_to_keep, axis=1)
-  return df.join(df_1_s)
+	"""For PCA, some columns need to be scaled"""
+	cols_to_keep = list(df.columns)
+	cols_to_keep.remove('price')
+	df_1 = df[cols_to_keep]
+	scaled = preprocessing.scale(df_1)
+	df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
+	df = df.drop(cols_to_keep, axis=1)
+	return df.join(df_1_s)
 
 
-def dimension_reduction(df, dim = 3):
+def dimension_reduction(df, dim=3):
 	pca = PCA(n_components=dim)
 	useful_cols = list(df.columns)
 	useful_cols.remove('price')
