@@ -78,7 +78,7 @@ def filter_to_only_data_within_box(df, latitude, longitude, bounds):
   return df.reset_index(drop = True)
 
 
-def find_postcode(df, longitude, latitude, bounds=0.001):
+def find_postcode(df, longitude, latitude, bounds=0.01):
   # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
   # so working around it
   df = filter_to_only_data_within_box(df, latitude, longitude, bounds)
@@ -88,7 +88,8 @@ def find_postcode(df, longitude, latitude, bounds=0.001):
 
   df['distance'] = [euc_dis(row) for _, row in df.iterrows()]
   if len(df) == 0:
-    raise Exception("Check your longitude and latitudes. They might not correspond to a location in the UK")
+    raise Exception("""Can't find any postcode within 1 km of your longitude and latitude.
+                    They might not correspond to a location in the UK""")
   df = df.sort_values(by = ['distance'])
   return df['postcode'].tolist()[0]
 
