@@ -1,7 +1,7 @@
 from .config import *
 
 from . import access
-
+from . import address
 """These are the types of import we might expect in this file
 import pandas
 import bokeh
@@ -20,14 +20,12 @@ import geopandas as gpd
 from geopandas.tools import sjoin
 import mlai
 import mlai.plot as plot
-from sklearn import preprocessing
-from sklearn.decomposition import PCA
+
 
 
 """Place commands in this file to assess the data you have downloaded. How are missing values encoded, how are outliers encoded? What do columns represent, makes rure they are correctly labeled. How is the data indexed. Crete visualisation routines to assess the data (e.g. in bokeh). Ensure that date formats are correct and correctly timezoned."""
 
 """The following functions mostly have to deal with cleaning data"""
-
 
 def one_hot(df, col_prefix, col):
   """One hot encode a given column col"""
@@ -47,16 +45,6 @@ def bin_price(df):
   df['price'] = y
   return df
 
-
-def scale_and_reduce(df):
-  """For PCA, some columns need to be scaled"""
-  cols_to_keep = list(df.columns)
-  cols_to_keep.remove('price')
-  df_1 = df[cols_to_keep]
-  scaled = preprocessing.scale(df_1)
-  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
-  df = df.drop(cols_to_keep, axis=1)
-  return df.join(df_1_s)
 
 
 """The following functions deal with finding specific data"""
@@ -92,6 +80,7 @@ def find_postcode(df, longitude, latitude, bounds=0.01):
                     They might not correspond to a location in the UK""")
   df = df.sort_values(by = ['distance'])
   return df['postcode'].tolist()[0]
+
 
 """The following functions have to do with viewing data"""
 
@@ -193,14 +182,10 @@ def view_pca(df):
   while dim not in {1, 2, 3}:
     # Using this loop since I don't really want to do too much error handling
     dim = int(input("Select a number 1 to 3 which corresponds to the number of dimensions you want to see the data in"))
-  df = bin_price(df)
-  pca = PCA(n_components=dim)
-  useful_cols = list(df.columns)
-  useful_cols.remove('price')
-  x = df[useful_cols]
   y = df['price']
-  df = pd.DataFrame(pca.fit_transform(x))
-  df = df.join(y)
+  df = bin_price(df)
+  df = address.scale_and_reduce(df)
+  df = address.dimension_reduction(df, dim)
 
   colors = cm.rainbow(np.linspace(0, 1, 10))
   if dim == 1:

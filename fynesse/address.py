@@ -20,6 +20,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import r2_score
 import random
 import pandas as pd
+from sklearn import preprocessing
+from sklearn.decomposition import PCA
 
 """Address a particular question that arises from the data"""
 
@@ -80,3 +82,25 @@ def train_and_predict(model, train, input):
 	prediction = model.predict(input)
 	print(f"Model has predicted an output of {prediction}")
 	return prediction
+
+
+def scale_and_reduce(df):
+  """For PCA, some columns need to be scaled"""
+  cols_to_keep = list(df.columns)
+  cols_to_keep.remove('price')
+  df_1 = df[cols_to_keep]
+  scaled = preprocessing.scale(df_1)
+  df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
+  df = df.drop(cols_to_keep, axis=1)
+  return df.join(df_1_s)
+
+
+def dimension_reduction(df, dim = 3):
+	pca = PCA(n_components=dim)
+	useful_cols = list(df.columns)
+	useful_cols.remove('price')
+	x = df[useful_cols]
+	y = df['price']
+	df = pd.DataFrame(pca.fit_transform(x))
+	df = df.join(y)
+	return df
