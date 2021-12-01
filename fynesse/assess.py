@@ -240,10 +240,16 @@ def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
   return len(pois)
 
 
-def add_pois(place_name, df, poi_tags):
+def add_pois(place_name, df, poi_tags, bounds = 0.02):
   """Given a place_name and tags, for each poi_tag find the number of pois in the vicinity of each house in df"""
   df = df.loc[df.town_city == place_name].reset_index(drop=True)
   north, south, east, west = get_lat_and_long_box(df)
+
+  north += bounds
+  south -= bounds
+  east += bounds
+  west -= bounds
+
   pois = ox.geometries_from_bbox(north, south, east, west, poi_tags)
   pois = pois.xs('node').reset_index(drop = True)
   lat_and_long = [row.geometry.representative_point().coords[:][0] for _, row in pois.iterrows()]
