@@ -3,6 +3,8 @@
 This repo provides a python template for doing data analysis according to the Fynesse framework.
 
 In order to use this repository, a database url has to be used as part of the connection. Currently, this is hardcoded to my database inside access.py and has to be overwritten. Requirements can be found in the first cell of ads-course-assessment.ipynb
+Also, note that the sql queries are mostly hard coded and the table names are not the same as those in the original ads-course-assessment. Instead of a table 'pp_data' for house prices, it instead stored in 'pp_data_2'
+
 
 Upon importing the fynesse template, an interactive manual will appear which requires database username and password and will create a credentials.yaml file from it.
 
