@@ -26,7 +26,7 @@ import re
 
 """Place commands in this file to assess the data you have downloaded. How are missing values encoded, how are outliers encoded? What do columns represent, makes rure they are correctly labeled. How is the data indexed. Crete visualisation routines to assess the data (e.g. in bokeh). Ensure that date formats are correct and correctly timezoned."""
 
-"""The following functions mostly have to deal with cleaning data"""
+"""The following functions mostly have to deal with preparing data"""
 
 def one_hot(df, col_prefix, col):
   """One hot encode a given column col"""
@@ -47,6 +47,11 @@ def bin_price(df):
   return df
 
 
+def filter_to_only_data_within_box(df, latitude, longitude, bounds):
+  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
+  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
+  return df.reset_index(drop = True)
+
 
 """The following functions deal with finding specific data"""
 
@@ -59,12 +64,6 @@ def get_lat_and_long_box(df):
 def get_mean_lat_and_long(df):
   latitude, longitude = np.mean(df['latitude']), np.mean(df['longitude'])
   return latitude, longitude
-
-
-def filter_to_only_data_within_box(df, latitude, longitude, bounds):
-  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
-  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
-  return df.reset_index(drop = True)
 
 
 def find_postcode(df, longitude, latitude, bounds=0.01):
@@ -301,7 +300,7 @@ def add_postcode_number(df):
 
 def data():
   """Load the data from access and ensure missing values are correctly encoded as well as indices correct, column names informative, date and times correctly formatted. Return a structured data structure such as a data frame."""
-  df = access.data()
+  df = access.data().reset_index(drop = True)
   df.fillna(0)
   return df
 

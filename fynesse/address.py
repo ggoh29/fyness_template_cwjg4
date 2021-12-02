@@ -21,6 +21,8 @@ import random
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
+from sklearn.model_selection import cross_val_score
+from sklearn.utils import resample
 
 """Address a particular question that arises from the data"""
 
@@ -41,19 +43,12 @@ def split_data_into_x_and_y(df, y_col='price'):
 	return df[lst], df[y_col]
 
 
-def resample(df, size=5000):
+def upsample(df, size=5000):
 	l = len(df)
 	if l >= size:
 		return df
-	cols = list(df.columns)
-	rows = list(df.to_records(index=False))
-	resampled_df = [rows[random.randint(0, l - 1)] for _ in range(size)]
-	resampled_df = [*zip(*resampled_df)]
-	dct = {}
-	for index, col in zip(cols, resampled_df):
-		dct[index] = col
-	return pd.DataFrame(dct)
-
+	df = resample(df, random_state=0, n_samples=size, replace = True)
+	return df
 
 """Functions related to PCA"""
 
@@ -96,8 +91,15 @@ def feature_importance(x, y, model):
 						f" +/- {r.importances_std[i]:.3f}")
 
 
-def generate_performance_of_model(df, model):
+def cross_validate_model(df, model, cv = 5):
+	x, y = split_data_into_x_and_y(df)
+	scores = cross_val_score(model, x, y, cv = cv, scoring = 'r2')
+	print(f"Model has an R2 score of {np.mean(scores)}")
+
+
+def calculate_r2_performance_of_model(df, model):
 	train, test = generate_train_test_split(df)
+	train = upsample(train)
 	x_train, y_train = split_data_into_x_and_y(train)
 	x_test, y_test = split_data_into_x_and_y(test)
 	model.fit(x_train, y_train)

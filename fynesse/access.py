@@ -14,7 +14,7 @@ import pandas as pd
 
 """Place commands in this file to access the data electronically. Don't remove any missing values, or deal with outliers. Make sure you have legalities correct, both intellectual property and personal data privacy rights. Beyond the legal side also think about the ethical issues around this data. """
 
-"""The following functions are related to database connecctions"""
+"""The following functions are related to database connections"""
 
 @interact_manual(username=Text(description="Username:"),password=Password(description="Password:"))
 def write_credentials(username, password):
