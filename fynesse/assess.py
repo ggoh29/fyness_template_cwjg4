@@ -324,13 +324,14 @@ def labelled(df, town_city, poi_tags):
   """Provide a labelled set of data ready for supervised learning."""
   # Feature that I want to include unfortunately have to be hard coded in
 
-  required_cols = ['price', 'latitude', 'longitude']
+  required_cols = ['price', 'postcode', 'latitude', 'longitude']
   property_one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
   house_stats_cols =  ['sold_before', 'sold_total']
 
   df = add_pois(town_city, df, poi_tags)
   df = add_statistics_of_houses_sold_before(df)
   df = add_one_hot_property_type(df, property_one_hot_cols)
+  df = add_postcode_number(df)
 
   columns = required_cols + property_one_hot_cols + house_stats_cols + list(poi_tags.keys())
   return df[columns]
