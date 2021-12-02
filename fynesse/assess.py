@@ -20,6 +20,7 @@ import geopandas as gpd
 from geopandas.tools import sjoin
 import mlai
 import mlai.plot as plot
+import re
 
 
 
@@ -291,7 +292,7 @@ def add_one_hot_property_type(df, one_hot_cols):
 
 
 def add_postcode_number(df):
-  postcode_data = [int(row['postcode'][2 : row['postcode'].index(' ')]) for _, row in df.iterrows()]
+  postcode_data = [int(re.findall(r'\d+', row['postcode'])[0]) for _, row in df.iterrows()]
   df['postcode'] = postcode_data
   return df
 
