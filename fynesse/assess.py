@@ -107,7 +107,7 @@ def view_poi_map(town_city, latitude, longitude, diff_lat, diff_long, tags):
   # Plot street edges
   edges.plot(ax=ax, linewidth=1, edgecolor="dimgray")
 
-  ax.title(f"Map of {town_city}")
+  ax.set_title(f"Map of {town_city}")
   ax.set_xlim([west, east])
   ax.set_ylim([south, north])
   ax.set_xlabel("longitude")
@@ -138,7 +138,7 @@ def view_pois_and_df_map(town_city, df, tags, price_bin):
   # Plot street edges
   edges.plot(ax=ax, linewidth=1, edgecolor="dimgray")
 
-  ax.title(f"Map of {town_city}")
+  ax.set_title(f"Map of {town_city}")
   ax.set_xlim([west, east])
   ax.set_ylim([south, north])
   ax.set_xlabel("longitude")
@@ -291,7 +291,7 @@ def add_one_hot_property_type(df, one_hot_cols):
 
 
 def add_postcode_number(df):
-  postcode_data = [int(row['postcode'][row['postcode'].index(' '): -2]) for _, row in df.iterrows()]
+  postcode_data = [int(row['postcode'][2 : row['postcode'].index(' ')]) for _, row in df.iterrows()]
   df['postcode'] = postcode_data
   return df
 
