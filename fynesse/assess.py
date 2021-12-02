@@ -48,8 +48,10 @@ def bin_price(df):
 
 
 def filter_to_only_data_within_box(df, latitude, longitude, bounds):
-  df = df[(float(df['longitude']) < float(longitude) + bounds) & (float(df['longitude']) > float(longitude) - bounds)]
-  df = df[(float(df['latitude']) < float(latitude) + bounds) & (float(df['latitude']) > float(latitude) - bounds)]
+  df["longitude"] = pd.to_numeric(df["longitude"], downcast="float")
+  df["latitude"] = pd.to_numeric(df["latitude"], downcast="float")
+  df = df[(df['longitude'] < float(longitude) + bounds) & (df['longitude'] > float(longitude) - bounds)]
+  df = df[(df['latitude'] < float(latitude) + bounds) & (df['latitude'] > float(latitude) - bounds)]
   return df.reset_index(drop = True)
 
 
