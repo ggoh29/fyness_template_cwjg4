@@ -16,7 +16,6 @@ import scipy.stats"""
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.inspection import permutation_importance
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import r2_score
 import random
 import pandas as pd
@@ -29,6 +28,8 @@ from sklearn.decomposition import PCA
 def get_basic_linear_regressor():
 	return LinearRegression()
 
+
+"""Functions that deal with the dataset"""
 
 def generate_train_test_split(df, test_size=0.1):
 	return train_test_split(df, test_size=test_size)
@@ -52,6 +53,34 @@ def resample(df, size=5000):
 	for index, col in zip(cols, resampled_df):
 		dct[index] = col
 	return pd.DataFrame(dct)
+
+
+"""Functions related to PCA"""
+
+
+def scale_and_reduce(df):
+	"""For PCA, some columns need to be scaled"""
+	cols_to_keep = list(df.columns)
+	cols_to_keep.remove('price')
+	df_1 = df[cols_to_keep]
+	scaled = preprocessing.scale(df_1)
+	df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
+	df = df.drop(cols_to_keep, axis=1)
+	return df.join(df_1_s)
+
+
+def dimension_reduction(df, dim=3):
+	pca = PCA(n_components=dim)
+	useful_cols = list(df.columns)
+	useful_cols.remove('price')
+	x = df[useful_cols]
+	y = df['price']
+	df = pd.DataFrame(pca.fit_transform(x))
+	df = df.join(y)
+	return df
+
+
+"""Functions related to model and model performance"""
 
 
 def feature_importance(x, y, model):
@@ -82,25 +111,3 @@ def train_and_predict(model, train, input):
 	prediction = model.predict(input)
 	print(f"Model has predicted an output of {prediction}")
 	return prediction
-
-
-def scale_and_reduce(df):
-	"""For PCA, some columns need to be scaled"""
-	cols_to_keep = list(df.columns)
-	cols_to_keep.remove('price')
-	df_1 = df[cols_to_keep]
-	scaled = preprocessing.scale(df_1)
-	df_1_s = pd.DataFrame(scaled, columns=cols_to_keep)
-	df = df.drop(cols_to_keep, axis=1)
-	return df.join(df_1_s)
-
-
-def dimension_reduction(df, dim=3):
-	pca = PCA(n_components=dim)
-	useful_cols = list(df.columns)
-	useful_cols.remove('price')
-	x = df[useful_cols]
-	y = df['price']
-	df = pd.DataFrame(pca.fit_transform(x))
-	df = df.join(y)
-	return df

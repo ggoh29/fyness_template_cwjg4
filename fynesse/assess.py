@@ -327,14 +327,10 @@ def labelled(df, town_city, poi_tags):
   required_cols = ['price', 'latitude', 'longitude']
   property_one_hot_cols = ['pt_D', 'pt_F', 'pt_O', 'pt_S', 'pt_T']
   house_stats_cols =  ['sold_before', 'sold_total']
-  inverse_house_stats_cols  = [f"inv_{tag}" for tag in house_stats_cols]
-  inverse_poi_tags = [f"inv_{tag}" for tag in poi_tags]
 
   df = add_pois(town_city, df, poi_tags)
-  df = add_inverse_of_columns(df, poi_tags)
-  df = add_inverse_of_columns(df, house_stats_cols)
   df = add_statistics_of_houses_sold_before(df)
   df = add_one_hot_property_type(df, property_one_hot_cols)
 
-  columns = required_cols + property_one_hot_cols + inverse_house_stats_cols + house_stats_cols + inverse_poi_tags
+  columns = required_cols + property_one_hot_cols + house_stats_cols + list(poi_tags.keys())
   return df[columns]
