@@ -23,6 +23,7 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA
 from sklearn.model_selection import cross_val_score
 from sklearn.utils import resample
+import numpy as np
 
 """Address a particular question that arises from the data"""
 

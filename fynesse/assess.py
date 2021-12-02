@@ -38,10 +38,10 @@ def one_hot(df, col_prefix, col):
   return df
 
 
-def bin_price(df):
+def bin_price(df, bin_size = 10):
   y = np.array(df['price'])
   y_1 = np.sort(y)
-  buckets = [np.percentile(y_1, i) for i in range(0, 100, 10)]
+  buckets = [np.percentile(y_1, i) for i in range(0, 100, bin_size)]
   y = np.digitize(y, buckets)
   df['price'] = y
   return df
@@ -56,6 +56,7 @@ def filter_to_only_data_within_box(df, latitude, longitude, bounds):
 """The following functions deal with finding specific data"""
 
 def get_lat_and_long_box(df):
+  """Given a dataframe consisting of latitudes and longitudes, construct a box around it by taking the maximum and minimum values"""
   lat_min, lat_max = min(df['latitude']), max(df['latitude'])
   lon_min, lon_max = min(df['longitude']), max(df['longitude'])
   return float(lat_max), float(lat_min), float(lon_max), float(lon_min)
@@ -67,6 +68,7 @@ def get_mean_lat_and_long(df):
 
 
 def find_postcode(df, longitude, latitude, bounds=0.01):
+  """Find the nearest postcode within a postcode_df that correspond to a particular longitude and latitude. The nearest postcode must be less than |bounds| distance away at least"""
   # For some reason, using the apply function on pandas has an import error and I don't have the time to debug it
   # so working around it
   df = filter_to_only_data_within_box(df, latitude, longitude, bounds)
@@ -219,6 +221,7 @@ def view_map(df):
 """The following functions mostly have to deal with adding features to the data"""
 
 def count_nearby_pois(latitude, longitude, poi_tag, bounds, pois):
+  """For a specific poi tag, counts the number that poi_tag appears within |bounds| distance from a given latitude and longitude"""
   if poi_tag not in pois.columns:
     return 0
   pois = pois[pois[poi_tag].notnull()]
@@ -261,13 +264,14 @@ def add_statistics_of_houses_sold_before(df):
     return sold_before, total, average_price
 
   stats = [get_number(row) for _, row in df.iterrows()]
-  df1 = pd.DataFrame(stats, columns=['sold_before', 'sold_total', 'average_price_of_area'])
+  df1 = pd.DataFrame(stats, columns=['sold_before', 'sold_total'])
   df = pd.concat([df, df1], axis=1)
   df.fillna(0)
   return df
 
 
 def add_inverse_of_columns(df, col_lst):
+  """Applies an inverse function of a column. Adding 1 to avoid dividing by 0"""
   inverse_col_lst = [f"inv_{tag}" for tag in col_lst]
   for i_key, key in zip(inverse_col_lst, col_lst):
     df[i_key] = 1 / (1 + df[key])
@@ -291,6 +295,7 @@ def add_one_hot_property_type(df, one_hot_cols):
 
 
 def add_postcode_number(df):
+  """Replaced the postcode address with the number in the prefix of the postcode"""
   postcode_data = [int(re.findall(r'\d+', row['postcode'])[0]) for _, row in df.iterrows()]
   df['postcode'] = postcode_data
   return df
